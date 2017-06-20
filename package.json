@@ -1,0 +1,33 @@
+{
+  "name": "@webantic/select",
+  "version": "1.0.0",
+  "description": "A simple select library",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "./node_modules/.bin/babel src -d ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webantic/webantic-select.git"
+  },
+  "keywords": [
+    "select",
+    "dropdown",
+    "ui"
+  ],
+  "author": "Calvin Evans <calvin@webantic.co.uk> (http://webantic.co.uk/)",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/webantic/webantic-select/issues"
+  },
+  "homepage": "https://github.com/webantic/webantic-select#readme",
+  "dependencies": {
+    "lodash": "^4.17.4",
+    "mithril": "^1.0.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.22.2",
+    "babel-preset-env": "^1.1.8"
+  }
+}

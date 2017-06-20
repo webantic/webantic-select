@@ -1,0 +1,25 @@
+{
+  "name": "@webantic/select",
+  "description": "A simple select library",
+  "main": "index.js",
+  "authors": [
+    "Calvin Evans <calvin@webantic.co.uk> (http://webantic.co.uk/)"
+  ],
+  "license": "Apache-2.0",
+  "keywords": [
+    "select",
+    "dropdown",
+    "ui"
+  ],
+  "homepage": "https://github.com/webantic/webantic-select",
+  "moduleType": [
+    "node"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
