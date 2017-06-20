@@ -116,9 +116,6 @@ var Select = function () {
       this.state.visible = true;
     }
   }, {
-    key: '_dedupeValues',
-    value: function _dedupeValues() {}
-  }, {
     key: '_dedupeSelected',
     value: function _dedupeSelected() {
       var selected = false;
@@ -149,11 +146,10 @@ var Select = function () {
     }
   }, {
     key: '_registerScrollVanish',
-    value: function _registerScrollVanish(e) {
+    value: function _registerScrollVanish(state) {
       var self = this;
       var _hideOnScroll = function _hideOnScroll(e) {
-        m.mount(self.config.root, null);
-        self.config.input.blur();
+        state.visible = false;
         window.removeEventListener('scroll', _hideOnScroll, false);
       };
       window.addEventListener('scroll', _hideOnScroll);
@@ -224,7 +220,7 @@ var Select = function () {
           vnode.dom.style.position = self.config.position;
 
           if (self.config.position === 'fixed') {
-            self._registerScrollVanish();
+            self._registerScrollVanish(vnode.attrs);
           }
 
           if (self.config.position === 'fixed') {

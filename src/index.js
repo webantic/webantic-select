@@ -100,8 +100,6 @@ class Select {
     this.state.visible = true
   }
 
-  _dedupeValues () {}
-
   _dedupeSelected () {
     let selected = false
     this.config.options.forEach((option) => {
@@ -128,11 +126,10 @@ class Select {
     e.stopPropagation()
   }
 
-  _registerScrollVanish (e) {
+  _registerScrollVanish (state) {
     const self = this
     const _hideOnScroll = function (e) {
-      m.mount(self.config.root, null)
-      self.config.input.blur()
+      state.visible = false
       window.removeEventListener('scroll', _hideOnScroll, false)
     }
     window.addEventListener('scroll', _hideOnScroll)
@@ -200,7 +197,7 @@ class Select {
         vnode.dom.style.position = self.config.position
 
         if (self.config.position === 'fixed') {
-          self._registerScrollVanish()
+          self._registerScrollVanish(vnode.attrs)
         }
 
         if (self.config.position === 'fixed') {
