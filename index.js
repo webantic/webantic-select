@@ -5,7 +5,6 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var m = require('mithril');
-var _ = require('lodash');
 
 var Select = function () {
   function Select(input) {
@@ -23,6 +22,7 @@ var Select = function () {
     // default config
     self.config = {
       position: 'fixed',
+      search: false,
       text: ''
 
       // update config
@@ -39,7 +39,7 @@ var Select = function () {
     ();if (self.config.type === 'select' && input.options) {
       self.config.options = Array.apply(null, input.options).map(function (option) {
         return {
-          value: option.value,
+          value: option.value || option.text,
           text: option.text,
           selected: option.selected
         };
@@ -48,8 +48,11 @@ var Select = function () {
       );input.style.display = 'none';
       self.config.input = self._createInput(input
 
-      // TODO: grab multiple and disabled attrs
-      );
+      // is the input disabled?
+      );self.config.disabled = Boolean(input.disabled
+
+      // is it a multi-select?
+      );self.config.multiple = Boolean(input.multiple);
     } else {
       self.config.input = input;
     }
@@ -57,20 +60,32 @@ var Select = function () {
     self.config.input.style.display = 'none';
 
     // grab initial value
-    var selectedOption = self._dedupeSelected() || { value: null, text: '' };
-    self.config.input.value = selectedOption.value;
-    self.config.text = selectedOption.text;
-
-    // use placeholder as iniital value in leiu of a real one
-    if (!self.config.text && input.placeholder) {
-      self.config.text = input.placeholder;
+    if (self.config.multiple) {
+      var values = [];
+      self.config.options.forEach(function (option) {
+        if (option.selected) {
+          values.push(option.value);
+        }
+      });
+      self.config.input.value = JSON.stringify(values);
+    } else {
+      var selectedOption = self._dedupeSelected() || { value: null, text: '' };
+      self.config.input.value = selectedOption.value || selectedOption.text;
+      self.config.text = selectedOption.text;
     }
+    self.config.placeholder = input.placeholder;
 
     // render pseudo select
     m.mount(self.config.root, self._renderSelect(self.config));
   }
 
   _createClass(Select, [{
+    key: 'value',
+    value: function value() {
+      var self = this;
+      return self.config.multiple ? JSON.parse(self.config.input.value) : self.config.input.value;
+    }
+  }, {
     key: '_validateInput',
     value: function _validateInput(input) {
       if (!input) {
@@ -91,15 +106,49 @@ var Select = function () {
       return root;
     }
   }, {
-    key: '_setOption',
-    value: function _setOption(option, state) {
+    key: '_selectOption',
+    value: function _selectOption(option, state) {
       var self = this;
-      self.config.input.value = option.value;
-      state.text = option.text;
-      self.config.options.forEach(function (compare) {
-        compare.selected = compare.value === option.value;
-      });
+      if (self.config.multiple) {
+        // for multi-selects
+        var values = JSON.parse(self.config.input.value);
+        var valueIndex = values.indexOf(String(option.value));
+        if (valueIndex > -1) {
+          // remove the option if its already set
+          values.splice(valueIndex, valueIndex);
+          self._unsetOption(option.value);
+        } else {
+          // add the option to the selected options
+          values.push(option.value);
+          self._setOption(option.value);
+        }
+        self.config.input.value = JSON.stringify(values);
+      } else {
+        // for single selects
+        self.config.input.value = option.value;
+        self.config.text = option.text;
+        self._setOption(option.value);
+      }
       self._hide(state);
+    }
+  }, {
+    key: '_setOption',
+    value: function _setOption(value) {
+      var self = this;
+      this.config.options.forEach(function (compare) {
+        if (self.config.multiple) {
+          compare.selected = String(compare.value) === String(value) ? true : compare.selected;
+        } else {
+          compare.selected = String(compare.value) === String(value);
+        }
+      });
+    }
+  }, {
+    key: '_unsetOption',
+    value: function _unsetOption(value) {
+      this.config.options.forEach(function (compare) {
+        compare.selected = String(compare.value) === String(value) ? false : compare.selected;
+      });
     }
   }, {
     key: '_hide',
@@ -114,6 +163,16 @@ var Select = function () {
     key: '_show',
     value: function _show() {
       this.state.visible = true;
+    }
+  }, {
+    key: '_search',
+    value: function _search(term, string) {
+      return string.substr(0, term.length > 3 ? string.length : term.length).search(new RegExp(term, "i")) > -1;
+    }
+  }, {
+    key: '_setSearchTerm',
+    value: function _setSearchTerm(state, vnode) {
+      state.searchTerm = String(vnode.dom.value);
     }
   }, {
     key: '_dedupeSelected',
@@ -134,7 +193,8 @@ var Select = function () {
     key: '_createInput',
     value: function _createInput(input) {
       var hiddenInput = document.createElement('input');
-      hiddenInput.type = 'text'.name;
+      hiddenInput.type = 'hidden';
+      hiddenInput.name = input.name;
       input.name += '_original';
       input.parentNode.insertBefore(hiddenInput, input);
       return hiddenInput;
@@ -198,6 +258,19 @@ var Select = function () {
       }
     }
   }, {
+    key: '_renderLabels',
+    value: function _renderLabels(options, state) {
+      var self = this;
+      return options.filter(function (option) {
+        return option.selected;
+      }).map(function (option) {
+        return m('span', {
+          class: 'label',
+          onclick: self._selectOption.bind(self, option, state)
+        }, option.text);
+      });
+    }
+  }, {
     key: '_renderOption',
     value: function _renderOption() {
       var self = this;
@@ -205,16 +278,48 @@ var Select = function () {
         view: function view(vnode) {
           return m('div', {
             class: 'option ' + (vnode.attrs.option.selected ? '-selected' : ''),
-            onclick: self._setOption.bind(self, vnode.attrs.option, vnode.attrs.state)
+            onclick: self._selectOption.bind(self, vnode.attrs.option, vnode.attrs.state)
           }, vnode.attrs.option.text);
         }
       };
     }
   }, {
-    key: '_renderDropdown',
-    value: function _renderDropdown() {
+    key: '_renderOptions',
+    value: function _renderOptions() {
       var self = this;
       return {
+        view: function view(vnode) {
+          return self.config.options.filter(function (option) {
+            if (vnode.attrs.searchTerm) {
+              return self._search(vnode.attrs.searchTerm, option.text);
+            }
+            return true;
+          }).map(function (option) {
+            return m(self._renderOption(), { option: option, state: vnode.attrs });
+          });
+        }
+      };
+    }
+  }, {
+    key: '_renderSelect',
+    value: function _renderSelect(state) {
+      var self = this;
+      var Search = {
+        view: function view(vnode) {
+          return m('input', {
+            class: 'search',
+            type: "text",
+            placeholder: "search...",
+            onkeyup: self._setSearchTerm.bind(this, vnode.attrs, vnode),
+            autofocus: true,
+            value: vnode.attrs.searchTerm
+          });
+        }
+      };
+      var Dropdown = {
+        state: {
+          searchTerm: null
+        },
         oncreate: function oncreate(vnode) {
           vnode.dom.style.width = self.config.clientWidth + 'px';
           vnode.dom.style.position = self.config.position;
@@ -229,19 +334,16 @@ var Select = function () {
             self._positionAbsolutely(vnode, vnode.attrs.dom);
           }
 
-          var _hide = document.addEventListener('click', self._hide.bind(null, vnode.attrs, _hide));
+          var hide = document.addEventListener('click', self._hide.bind(null, vnode.attrs, hide));
         },
         view: function view(vnode) {
-          return m('div', { class: 'select-options' }, self.config.options.map(function (option) {
-            return m(self._renderOption(), { option: option, state: vnode.attrs });
-          }));
+          var contents = [m(self._renderOptions(), this.state)];
+          if (self.config.search) {
+            contents.unshift(m(Search, this.state));
+          }
+          return m('div', { class: 'select-options' }, contents);
         }
       };
-    }
-  }, {
-    key: '_renderSelect',
-    value: function _renderSelect(state) {
-      var self = this;
       return {
         state: state,
         oncreate: function oncreate(vnode) {
@@ -249,11 +351,11 @@ var Select = function () {
         },
         _showDropdown: function _showDropdown() {
           if (this.state.visible) {
-            return m(self._renderDropdown(), this.state);
+            return m(Dropdown, this.state);
           }
         },
         view: function view(vnode) {
-          return [m('div', { class: 'select-input', contenteditable: true, onclick: self._show.bind(this) }, m.trust(state.text)), this._showDropdown()];
+          return [m('div', { class: 'select-value', onclick: self._show.bind(this) }, self.config.multiple ? self._renderLabels(self.config.options, state) : self.config.text), this._showDropdown()];
         }
       };
     }
