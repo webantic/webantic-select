@@ -51,9 +51,31 @@ class Select {
     self.config.input.style.display = 'none'
 
     // grab initial value
+    self._initOptionsFromArray(self.config.options)
+
+    // render pseudo select
+    m.mount(self.config.root, self._renderSelect(self.config))
+  }
+
+  value () {
+    const self = this
+    return self.config.multiple ? JSON.parse(self.config.input.value) : self.config.input.value
+  }
+
+  updateOptions(options){
+    const self = this
+    if (!options || !Array.isArray(options)){
+      return
+    }
+    self._initOptionsFromArray(options)
+  }
+
+  _initOptionsFromArray(options){
+    const self = this
+    self.config.options = options
     if (self.config.multiple) {
       let values = []
-      self.config.options.forEach((option) => {
+      options.forEach((option) => {
         if (option.selected) {
           values.push(option.value)
         }
@@ -64,15 +86,7 @@ class Select {
       self.config.input.value = selectedOption.value || selectedOption.text
       self.config.text = selectedOption.text
     }
-    self.config.placeholder = input.placeholder
-
-    // render pseudo select
-    m.mount(self.config.root, self._renderSelect(self.config))
-  }
-
-  value () {
-    const self = this
-    return self.config.multiple ? JSON.parse(self.config.input.value) : self.config.input.value
+    m.redraw()
   }
 
   _validateInput (input) {

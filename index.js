@@ -60,23 +60,10 @@ var Select = function () {
     self.config.input.style.display = 'none';
 
     // grab initial value
-    if (self.config.multiple) {
-      var values = [];
-      self.config.options.forEach(function (option) {
-        if (option.selected) {
-          values.push(option.value);
-        }
-      });
-      self.config.input.value = JSON.stringify(values);
-    } else {
-      var selectedOption = self._dedupeSelected() || { value: null, text: '' };
-      self.config.input.value = selectedOption.value || selectedOption.text;
-      self.config.text = selectedOption.text;
-    }
-    self.config.placeholder = input.placeholder;
+    self._initOptionsFromArray(self.config.options
 
     // render pseudo select
-    m.mount(self.config.root, self._renderSelect(self.config));
+    );m.mount(self.config.root, self._renderSelect(self.config));
   }
 
   _createClass(Select, [{
@@ -84,6 +71,35 @@ var Select = function () {
     value: function value() {
       var self = this;
       return self.config.multiple ? JSON.parse(self.config.input.value) : self.config.input.value;
+    }
+  }, {
+    key: 'updateOptions',
+    value: function updateOptions(options) {
+      var self = this;
+      if (!options || !Array.isArray(options)) {
+        return;
+      }
+      self._initOptionsFromArray(options);
+    }
+  }, {
+    key: '_initOptionsFromArray',
+    value: function _initOptionsFromArray(options) {
+      var self = this;
+      self.config.options = options;
+      if (self.config.multiple) {
+        var values = [];
+        options.forEach(function (option) {
+          if (option.selected) {
+            values.push(option.value);
+          }
+        });
+        self.config.input.value = JSON.stringify(values);
+      } else {
+        var selectedOption = self._dedupeSelected() || { value: null, text: '' };
+        self.config.input.value = selectedOption.value || selectedOption.text;
+        self.config.text = selectedOption.text;
+      }
+      m.redraw();
     }
   }, {
     key: '_validateInput',
