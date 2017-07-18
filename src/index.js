@@ -36,7 +36,7 @@ class Select {
           selected: option.selected
         }
       })
-      // _hide input and render text element 
+      // _hide input and render text element
       input.style.display = 'none'
       self.config.input = self._createInput(input)
 
@@ -63,10 +63,10 @@ class Select {
     return self.config.multiple ? JSON.parse(self.config.input.value) : self.config.input.value
   }
 
-  updateOptions(options){
+  updateOptions (options) {
     const self = this
-    if (!options || !Array.isArray(options)){
-      if (self.config.type === "select"){
+    if (!options || !Array.isArray(options)) {
+      if (self.config.type === 'select') {
         options = Array.apply(null, self.config.original.options).map((option) => {
           return {
             value: option.value || option.text,
@@ -81,7 +81,7 @@ class Select {
     self._initOptionsFromArray(options)
   }
 
-  _initOptionsFromArray(options){
+  _initOptionsFromArray (options) {
     const self = this
     self.config.options = options
     if (self.config.multiple) {
@@ -140,7 +140,22 @@ class Select {
       self.config.text = option.text
       self._setOption(option.value)
     }
+    self._triggerChangeEvent()
     self._hide(state)
+  }
+
+  _triggerChangeEvent () {
+    const self = this
+
+    if (document.createEventObject) {
+      // IE
+      const event = document.createEventObject()
+      return self.config.input.fireEvent('onchange', event)
+    } else {
+      const event = document.createEvent('HTMLEvents')
+      event.initEvent('change', true, true)
+      return !self.config.input.dispatchEvent(event)
+    }
   }
 
   _setOption (value) {
@@ -172,8 +187,8 @@ class Select {
     this.state.visible = true
   }
 
-  _search(term, string){
-    return string.substr(0, term.length > 3 ? string.length : term.length).search(new RegExp(term, "i")) > -1
+  _search (term, string) {
+    return string.substr(0, term.length > 3 ? string.length : term.length).search(new RegExp(term, 'i')) > -1
   }
 
   _setSearchTerm (state, vnode) {
@@ -274,7 +289,7 @@ class Select {
   _renderOption () {
     const self = this
     return {
-      view(vnode) {
+      view (vnode) {
         return m('div', {
           class: `option ${vnode.attrs.option.selected ? '-selected' : ''}`,
           onclick: self._selectOption.bind(self, vnode.attrs.option, vnode.attrs.state)
@@ -288,9 +303,9 @@ class Select {
   _renderOptions () {
     const self = this
     return {
-      view(vnode) {
+      view (vnode) {
         return self.config.options.filter(option => {
-          if (vnode.attrs.searchTerm){
+          if (vnode.attrs.searchTerm) {
             return self._search(vnode.attrs.searchTerm, option.text)
           }
           return true
@@ -304,22 +319,22 @@ class Select {
   _renderSelect (state) {
     const self = this
     const Search = {
-        view(vnode){
-          return m('input', {
-            class: 'search',
-            type: "text",
-            placeholder: "search...",
-            onkeyup: self._setSearchTerm.bind(this, vnode.attrs, vnode),
-            autofocus: true,
-            value: vnode.attrs.searchTerm
-          })
-        }
+      view (vnode) {
+        return m('input', {
+          class: 'search',
+          type: 'text',
+          placeholder: 'search...',
+          onkeyup: self._setSearchTerm.bind(this, vnode.attrs, vnode),
+          autofocus: true,
+          value: vnode.attrs.searchTerm
+        })
+      }
     }
     const Dropdown = {
       state: {
         searchTerm: null
       },
-      oncreate(vnode) {
+      oncreate (vnode) {
         vnode.dom.style.width = self.config.clientWidth + 'px'
         vnode.dom.style.position = self.config.position
 
@@ -335,9 +350,9 @@ class Select {
 
         const hide = document.addEventListener('click', self._hide.bind(null, vnode.attrs, hide))
       },
-      view(vnode) {
+      view (vnode) {
         let contents = [ m(self._renderOptions(), this.state) ]
-        if (self.config.search){
+        if (self.config.search) {
           contents.unshift(m(Search, this.state))
         }
         return m('div', {class: 'select-options'}, contents)
@@ -345,15 +360,15 @@ class Select {
     }
     return {
       state,
-      oncreate(vnode) {
+      oncreate (vnode) {
         this.state.dom = vnode.dom
       },
-      _showDropdown() {
+      _showDropdown () {
         if (this.state.visible) {
           return m(Dropdown, this.state)
         }
       },
-      view(vnode) {
+      view (vnode) {
         return [
           m('div', {class: 'select-value', onclick: self._show.bind(this)}, self.config.multiple ? self._renderLabels(self.config.options, state) : self.config.text),
           this._showDropdown()

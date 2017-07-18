@@ -26,17 +26,17 @@ var Select = function () {
       text: ''
 
       // update config
-    };Object.assign(self.config, config
+    };Object.assign(self.config, config);
 
     // create root div and prevent propagation
-    );self.config.root = self._createRoot(input);
-    self.config.root.addEventListener('click', self._stopPropagation
+    self.config.root = self._createRoot(input);
+    self.config.root.addEventListener('click', self._stopPropagation);
 
     // store the type (select or input)
-    );self.config.type = input.tagName.toLowerCase
+    self.config.type = input.tagName.toLowerCase();
 
     // if a <select> is used, grab the options and setup a text input
-    ();if (self.config.type === 'select' && input.options) {
+    if (self.config.type === 'select' && input.options) {
       self.config.original = input;
       self.config.options = Array.apply(null, input.options).map(function (option) {
         return {
@@ -44,16 +44,16 @@ var Select = function () {
           text: option.text,
           selected: option.selected
         };
-      }
-      // _hide input and render text element 
-      );input.style.display = 'none';
-      self.config.input = self._createInput(input
+      });
+      // _hide input and render text element
+      input.style.display = 'none';
+      self.config.input = self._createInput(input);
 
       // is the input disabled?
-      );self.config.disabled = Boolean(input.disabled
+      self.config.disabled = Boolean(input.disabled);
 
       // is it a multi-select?
-      );self.config.multiple = Boolean(input.multiple);
+      self.config.multiple = Boolean(input.multiple);
     } else {
       self.config.input = input;
     }
@@ -61,10 +61,10 @@ var Select = function () {
     self.config.input.style.display = 'none';
 
     // grab initial value
-    self._initOptionsFromArray(self.config.options
+    self._initOptionsFromArray(self.config.options);
 
     // render pseudo select
-    );m.mount(self.config.root, self._renderSelect(self.config));
+    m.mount(self.config.root, self._renderSelect(self.config));
   }
 
   _createClass(Select, [{
@@ -78,7 +78,7 @@ var Select = function () {
     value: function updateOptions(options) {
       var self = this;
       if (!options || !Array.isArray(options)) {
-        if (self.config.type === "select") {
+        if (self.config.type === 'select') {
           options = Array.apply(null, self.config.original.options).map(function (option) {
             return {
               value: option.value || option.text,
@@ -156,7 +156,23 @@ var Select = function () {
         self.config.text = option.text;
         self._setOption(option.value);
       }
+      self._triggerChangeEvent();
       self._hide(state);
+    }
+  }, {
+    key: '_triggerChangeEvent',
+    value: function _triggerChangeEvent() {
+      var self = this;
+
+      if (document.createEventObject) {
+        // IE
+        var event = document.createEventObject();
+        return self.config.input.fireEvent('onchange', event);
+      } else {
+        var _event = document.createEvent('HTMLEvents');
+        _event.initEvent('change', true, true);
+        return !self.config.input.dispatchEvent(_event);
+      }
     }
   }, {
     key: '_setOption',
@@ -194,7 +210,7 @@ var Select = function () {
   }, {
     key: '_search',
     value: function _search(term, string) {
-      return string.substr(0, term.length > 3 ? string.length : term.length).search(new RegExp(term, "i")) > -1;
+      return string.substr(0, term.length > 3 ? string.length : term.length).search(new RegExp(term, 'i')) > -1;
     }
   }, {
     key: '_setSearchTerm',
@@ -335,8 +351,8 @@ var Select = function () {
         view: function view(vnode) {
           return m('input', {
             class: 'search',
-            type: "text",
-            placeholder: "search...",
+            type: 'text',
+            placeholder: 'search...',
             onkeyup: self._setSearchTerm.bind(this, vnode.attrs, vnode),
             autofocus: true,
             value: vnode.attrs.searchTerm
