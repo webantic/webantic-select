@@ -28,6 +28,7 @@ class Select {
 
     // if a <select> is used, grab the options and setup a text input
     if (self.config.type === 'select' && input.options) {
+      self.config.original = input
       self.config.options = Array.apply(null, input.options).map((option) => {
         return {
           value: option.value || option.text,
@@ -65,7 +66,17 @@ class Select {
   updateOptions(options){
     const self = this
     if (!options || !Array.isArray(options)){
-      return
+      if (self.config.type === "select"){
+        options = Array.apply(null, self.config.original.options).map((option) => {
+          return {
+            value: option.value || option.text,
+            text: option.text,
+            selected: option.selected
+          }
+        })
+      } else {
+        return
+      }
     }
     self._initOptionsFromArray(options)
   }
