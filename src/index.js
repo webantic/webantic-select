@@ -140,21 +140,19 @@ class Select {
       self.config.text = option.text
       self._setOption(option.value)
     }
-    self._triggerChangeEvent()
+    self._triggerChangeEvent(self.config.input)
     self._hide(state)
   }
 
-  _triggerChangeEvent () {
-    const self = this
-
+  _triggerChangeEvent (element) {
     if (document.createEventObject) {
       // IE
       const event = document.createEventObject()
-      return self.config.input.fireEvent('onchange', event)
+      element.fireEvent('onchange', event)
     } else {
       const event = document.createEvent('HTMLEvents')
       event.initEvent('change', true, true)
-      return !self.config.input.dispatchEvent(event)
+      element.dispatchEvent(event)
     }
   }
 
@@ -213,7 +211,9 @@ class Select {
     const hiddenInput = document.createElement('input')
     hiddenInput.type = 'hidden'
     hiddenInput.name = input.name
+    hiddenInput.className = input.className
     input.name += '_original'
+    input.className = ''
     input.parentNode.insertBefore(hiddenInput, input)
     return hiddenInput
   }

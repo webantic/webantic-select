@@ -156,22 +156,20 @@ var Select = function () {
         self.config.text = option.text;
         self._setOption(option.value);
       }
-      self._triggerChangeEvent();
+      self._triggerChangeEvent(self.config.input);
       self._hide(state);
     }
   }, {
     key: '_triggerChangeEvent',
-    value: function _triggerChangeEvent() {
-      var self = this;
-
+    value: function _triggerChangeEvent(element) {
       if (document.createEventObject) {
         // IE
         var event = document.createEventObject();
-        return self.config.input.fireEvent('onchange', event);
+        element.fireEvent('onchange', event);
       } else {
         var _event = document.createEvent('HTMLEvents');
         _event.initEvent('change', true, true);
-        return !self.config.input.dispatchEvent(_event);
+        element.dispatchEvent(_event);
       }
     }
   }, {
@@ -238,7 +236,9 @@ var Select = function () {
       var hiddenInput = document.createElement('input');
       hiddenInput.type = 'hidden';
       hiddenInput.name = input.name;
+      hiddenInput.className = input.className;
       input.name += '_original';
+      input.className = '';
       input.parentNode.insertBefore(hiddenInput, input);
       return hiddenInput;
     }
