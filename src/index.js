@@ -3,6 +3,8 @@ const m = require('mithril')
 class Select {
   constructor (input, config = {}) {
     const self = this
+    Select.eventName = '@webantic/select/opened'
+    Select.openClassName = '-select-open'
 
     // check input
     if (!self._validateInput(input)) {
@@ -13,7 +15,9 @@ class Select {
     self.config = {
       position: 'fixed',
       search: false,
-      text: ''
+      text: '',
+      viewport: document,
+      oneOpen: true
     }
 
     // update config
@@ -139,9 +143,9 @@ class Select {
       self.config.input.value = option.value
       self.config.text = option.text
       self._setOption(option.value)
+      self._hide(state)
     }
     self._triggerChangeEvent(self.config.input)
-    self._hide(state)
   }
 
   _triggerChangeEvent (element) {
@@ -181,8 +185,17 @@ class Select {
     }
   }
 
-  _show () {
-    this.state.visible = true
+  _show (state) {
+    const self = this
+
+    window.dispatchEvent(new CustomEvent(Select.eventName, {
+      detail: {
+        instance: self
+      },
+      bubbles: true
+    }))
+
+    state.visible = true
   }
 
   _search (term, string) {
@@ -224,18 +237,19 @@ class Select {
 
   _registerScrollVanish (state) {
     const self = this
+
+    const viewport = (self.config.viewport === document) ? document : document.querySelector(self.config.viewport)
+
     const _hideOnScroll = function (e) {
-      state.visible = false
-      window.removeEventListener('scroll', _hideOnScroll, false)
+      self._hide(state)
+      viewport.removeEventListener('scroll', _hideOnScroll, false)
     }
-    window.addEventListener('scroll', _hideOnScroll)
+    viewport.addEventListener('scroll', _hideOnScroll)
   }
 
   _positionFixedly (vnode, parent) {
-    const self = this
-
     const inputPosition = parent.getBoundingClientRect()
-    if (inputPosition.left < parent.clientWidth) {
+    if ((inputPosition.left + parent.clientWidth) < window.innerWidth) {
       vnode.dom.style.left = inputPosition.left + 'px'
     } else {
       vnode.dom.style.right = (window.innerWidth - inputPosition.right) + 'px'
@@ -249,7 +263,6 @@ class Select {
   }
 
   _positionAbsolutely (vnode, parent) {
-    const self = this
     // just in case there's no parent with a non-static position
     document.body.style.position = 'relative'
 
@@ -300,7 +313,7 @@ class Select {
     }
   }
 
-  _renderOptions () {
+  _renderOptions (state) {
     const self = this
     return {
       view (vnode) {
@@ -310,7 +323,7 @@ class Select {
           }
           return true
         }).map(option => {
-          return m(self._renderOption(), {option: option, state: vnode.attrs})
+          return m(self._renderOption(), {option, state})
         })
       }
     }
@@ -335,11 +348,11 @@ class Select {
         searchTerm: null
       },
       oncreate (vnode) {
-        vnode.dom.style.width = self.config.clientWidth + 'px'
+        vnode.dom.style.width = self.config.dom.clientWidth + 'px'
         vnode.dom.style.position = self.config.position
 
         if (self.config.position === 'fixed') {
-          self._registerScrollVanish(vnode.attrs)
+          self._registerScrollVanish(state)
         }
 
         if (self.config.position === 'fixed') {
@@ -351,7 +364,7 @@ class Select {
         const hide = document.addEventListener('click', self._hide.bind(null, vnode.attrs, hide))
       },
       view (vnode) {
-        let contents = [ m(self._renderOptions(), this.state) ]
+        let contents = [ m(self._renderOptions(state), this.state) ]
         if (self.config.search) {
           contents.unshift(m(Search, this.state))
         }
@@ -362,15 +375,21 @@ class Select {
       state,
       oncreate (vnode) {
         this.state.dom = vnode.dom
+
+        window.addEventListener(Select.eventName, function (event) {
+          if (event.detail.instance !== self) {
+            self._hide(state)
+          }
+        })
       },
       _showDropdown () {
-        if (this.state.visible) {
-          return m(Dropdown, this.state)
+        if (state.visible) {
+          return m(Dropdown, state)
         }
       },
       view (vnode) {
         return [
-          m('div', {class: 'select-value', onclick: self._show.bind(this)}, self.config.multiple ? self._renderLabels(self.config.options, state) : self.config.text),
+          m('div', {class: 'select-value', onclick: self._show.bind(self, state)}, self.config.multiple ? self._renderLabels(self.config.options, state) : self.config.text),
           this._showDropdown()
         ]
       }

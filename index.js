@@ -13,6 +13,8 @@ var Select = function () {
     _classCallCheck(this, Select);
 
     var self = this;
+    Select.eventName = '@webantic/select/opened';
+    Select.openClassName = '-select-open';
 
     // check input
     if (!self._validateInput(input)) {
@@ -23,7 +25,9 @@ var Select = function () {
     self.config = {
       position: 'fixed',
       search: false,
-      text: ''
+      text: '',
+      viewport: document,
+      oneOpen: true
 
       // update config
     };Object.assign(self.config, config);
@@ -155,9 +159,9 @@ var Select = function () {
         self.config.input.value = option.value;
         self.config.text = option.text;
         self._setOption(option.value);
+        self._hide(state);
       }
       self._triggerChangeEvent(self.config.input);
-      self._hide(state);
     }
   }, {
     key: '_triggerChangeEvent',
@@ -202,8 +206,17 @@ var Select = function () {
     }
   }, {
     key: '_show',
-    value: function _show() {
-      this.state.visible = true;
+    value: function _show(state) {
+      var self = this;
+
+      window.dispatchEvent(new CustomEvent(Select.eventName, {
+        detail: {
+          instance: self
+        },
+        bubbles: true
+      }));
+
+      state.visible = true;
     }
   }, {
     key: '_search',
@@ -251,11 +264,16 @@ var Select = function () {
     key: '_registerScrollVanish',
     value: function _registerScrollVanish(state) {
       var self = this;
+
+      var viewport = self.config.viewport === document ? document : document.querySelector(self.config.viewport);
+
       var _hideOnScroll = function _hideOnScroll(e) {
-        state.visible = false;
-        window.removeEventListener('scroll', _hideOnScroll, false);
+        console.log('calling _hideOnScroll with');
+        console.log(state);
+        self._hide(state);
+        viewport.removeEventListener('scroll', _hideOnScroll, false);
       };
-      window.addEventListener('scroll', _hideOnScroll);
+      viewport.addEventListener('scroll', _hideOnScroll);
     }
   }, {
     key: '_positionFixedly',
@@ -263,7 +281,7 @@ var Select = function () {
       var self = this;
 
       var inputPosition = parent.getBoundingClientRect();
-      if (inputPosition.left < parent.clientWidth) {
+      if (inputPosition.left + parent.clientWidth < window.innerWidth) {
         vnode.dom.style.left = inputPosition.left + 'px';
       } else {
         vnode.dom.style.right = window.innerWidth - inputPosition.right + 'px';
@@ -328,7 +346,7 @@ var Select = function () {
     }
   }, {
     key: '_renderOptions',
-    value: function _renderOptions() {
+    value: function _renderOptions(state) {
       var self = this;
       return {
         view: function view(vnode) {
@@ -338,7 +356,7 @@ var Select = function () {
             }
             return true;
           }).map(function (option) {
-            return m(self._renderOption(), { option: option, state: vnode.attrs });
+            return m(self._renderOption(), { option: option, state: state });
           });
         }
       };
@@ -364,11 +382,11 @@ var Select = function () {
           searchTerm: null
         },
         oncreate: function oncreate(vnode) {
-          vnode.dom.style.width = self.config.clientWidth + 'px';
+          vnode.dom.style.width = self.config.dom.clientWidth + 'px';
           vnode.dom.style.position = self.config.position;
 
           if (self.config.position === 'fixed') {
-            self._registerScrollVanish(vnode.attrs);
+            self._registerScrollVanish(state);
           }
 
           if (self.config.position === 'fixed') {
@@ -380,7 +398,7 @@ var Select = function () {
           var hide = document.addEventListener('click', self._hide.bind(null, vnode.attrs, hide));
         },
         view: function view(vnode) {
-          var contents = [m(self._renderOptions(), this.state)];
+          var contents = [m(self._renderOptions(state), this.state)];
           if (self.config.search) {
             contents.unshift(m(Search, this.state));
           }
@@ -391,14 +409,20 @@ var Select = function () {
         state: state,
         oncreate: function oncreate(vnode) {
           this.state.dom = vnode.dom;
+
+          window.addEventListener(Select.eventName, function (event) {
+            if (event.detail.instance !== self) {
+              self._hide(state);
+            }
+          });
         },
         _showDropdown: function _showDropdown() {
-          if (this.state.visible) {
-            return m(Dropdown, this.state);
+          if (state.visible) {
+            return m(Dropdown, state);
           }
         },
         view: function view(vnode) {
-          return [m('div', { class: 'select-value', onclick: self._show.bind(this) }, self.config.multiple ? self._renderLabels(self.config.options, state) : self.config.text), this._showDropdown()];
+          return [m('div', { class: 'select-value', onclick: self._show.bind(self, state) }, self.config.multiple ? self._renderLabels(self.config.options, state) : self.config.text), this._showDropdown()];
         }
       };
     }

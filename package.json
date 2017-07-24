@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/webantic/webantic-select#readme",
   "dependencies": {
+    "@webantic/util": "^3.11.2",
     "mithril": "^1.0.0"
   },
   "devDependencies": {
