@@ -17,6 +17,7 @@ class Select {
       search: false,
       text: '',
       viewport: document,
+      isModal: false,
       oneOpen: true
     }
 
@@ -247,18 +248,37 @@ class Select {
     viewport.addEventListener('scroll', _hideOnScroll)
   }
 
-  _positionFixedly (vnode, parent) {
-    const inputPosition = parent.getBoundingClientRect()
-    if ((inputPosition.left + parent.clientWidth) < window.innerWidth) {
-      vnode.dom.style.left = inputPosition.left + 'px'
+  _positionFixedly (vnode, input) {
+    const self = this
+
+    let { top, right, bottom, left } = input.getBoundingClientRect()
+
+    const viewport = self.config.viewport !== document ? document.querySelector(self.config.viewport) : false
+    if (viewport && self.config.isModal) {
+      const viewportBoundaries = viewport.getBoundingClientRect()
+
+      left -= viewportBoundaries.left
+      top -= viewportBoundaries.top
+      bottom += viewportBoundaries.bottom
+      right += viewportBoundaries.right
+
+      if ((top + vnode.dom.offsetHeight) < viewport.bottom) {
+        vnode.dom.style.top = bottom + 'px' // show below
+      } else {
+        vnode.dom.style.top = (top - vnode.dom.offsetHeight) + 'px' // show above
+      }
     } else {
-      vnode.dom.style.right = (window.innerWidth - inputPosition.right) + 'px'
+      if ((top + vnode.dom.offsetHeight) < document.body.scrollHeight) {
+        vnode.dom.style.top = bottom + 'px'
+      } else {
+        vnode.dom.style.top = (top - vnode.dom.offsetHeight) + 'px'
+      }
     }
 
-    if (parent.getBoundingClientRect().bottom > (window.innerHeight * 0.75)) {
-      vnode.dom.style.bottom = (window.innerHeight - inputPosition.top) + 'px'
+    if ((left + input.clientWidth) < window.innerWidth) {
+      vnode.dom.style.left = left + 'px'
     } else {
-      vnode.dom.style.top = (inputPosition.top + parent.clientHeight) + 'px'
+      vnode.dom.style.right = (window.innerWidth - right) + 'px'
     }
   }
 

@@ -27,6 +27,7 @@ var Select = function () {
       search: false,
       text: '',
       viewport: document,
+      isModal: false,
       oneOpen: true
 
       // update config
@@ -268,8 +269,6 @@ var Select = function () {
       var viewport = self.config.viewport === document ? document : document.querySelector(self.config.viewport);
 
       var _hideOnScroll = function _hideOnScroll(e) {
-        console.log('calling _hideOnScroll with');
-        console.log(state);
         self._hide(state);
         viewport.removeEventListener('scroll', _hideOnScroll, false);
       };
@@ -277,26 +276,46 @@ var Select = function () {
     }
   }, {
     key: '_positionFixedly',
-    value: function _positionFixedly(vnode, parent) {
+    value: function _positionFixedly(vnode, input) {
       var self = this;
 
-      var inputPosition = parent.getBoundingClientRect();
-      if (inputPosition.left + parent.clientWidth < window.innerWidth) {
-        vnode.dom.style.left = inputPosition.left + 'px';
+      var _input$getBoundingCli = input.getBoundingClientRect(),
+          top = _input$getBoundingCli.top,
+          right = _input$getBoundingCli.right,
+          bottom = _input$getBoundingCli.bottom,
+          left = _input$getBoundingCli.left;
+
+      var viewport = self.config.viewport !== document ? document.querySelector(self.config.viewport) : false;
+      if (viewport && self.config.isModal) {
+        var viewportBoundaries = viewport.getBoundingClientRect();
+
+        left -= viewportBoundaries.left;
+        top -= viewportBoundaries.top;
+        bottom += viewportBoundaries.bottom;
+        right += viewportBoundaries.right;
+
+        if (top + vnode.dom.offsetHeight < viewport.bottom) {
+          vnode.dom.style.top = bottom + 'px'; // show below
+        } else {
+          vnode.dom.style.top = top - vnode.dom.offsetHeight + 'px'; // show above
+        }
       } else {
-        vnode.dom.style.right = window.innerWidth - inputPosition.right + 'px';
+        if (top + vnode.dom.offsetHeight < document.body.scrollHeight) {
+          vnode.dom.style.top = bottom + 'px';
+        } else {
+          vnode.dom.style.top = top - vnode.dom.offsetHeight + 'px';
+        }
       }
 
-      if (parent.getBoundingClientRect().bottom > window.innerHeight * 0.75) {
-        vnode.dom.style.bottom = window.innerHeight - inputPosition.top + 'px';
+      if (left + input.clientWidth < window.innerWidth) {
+        vnode.dom.style.left = left + 'px';
       } else {
-        vnode.dom.style.top = inputPosition.top + parent.clientHeight + 'px';
+        vnode.dom.style.right = window.innerWidth - right + 'px';
       }
     }
   }, {
     key: '_positionAbsolutely',
     value: function _positionAbsolutely(vnode, parent) {
-      var self = this;
       // just in case there's no parent with a non-static position
       document.body.style.position = 'relative';
 
