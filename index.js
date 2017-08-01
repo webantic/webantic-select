@@ -147,13 +147,14 @@ var Select = function () {
         var valueIndex = values.indexOf(String(option.value));
         if (valueIndex > -1) {
           // remove the option if its already set
-          values.splice(valueIndex, valueIndex);
+          values.splice(valueIndex, 1);
           self._unsetOption(option.value);
         } else {
           // add the option to the selected options
           values.push(option.value);
           self._setOption(option.value);
         }
+        self._hide(state);
         self.config.input.value = JSON.stringify(values);
       } else {
         // for single selects
@@ -346,7 +347,10 @@ var Select = function () {
       }).map(function (option) {
         return m('span', {
           class: 'label',
-          onclick: self._selectOption.bind(self, option, state)
+          onclick: function onclick(event) {
+            event.stopPropagation();
+            self._selectOption(option, state);
+          }
         }, option.text);
       });
     }
