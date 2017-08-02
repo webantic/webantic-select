@@ -18,7 +18,9 @@ class Select {
       text: '',
       viewport: document,
       isModal: false,
-      oneOpen: true
+      oneOpen: true,
+      classValue: 'select-value',
+      classOption: 'select-option'
     }
 
     // update config
@@ -313,7 +315,7 @@ class Select {
     }).map((option) => {
       return m('span', {
         class: `label`,
-        onclick: function(event) {
+        onclick: function (event) {
           event.stopPropagation()
           self._selectOption(option, state)
         }
@@ -392,7 +394,7 @@ class Select {
         if (self.config.search) {
           contents.unshift(m(Search, this.state))
         }
-        return m('div', {class: 'select-options'}, contents)
+        return m('div', {class: self.config.classOption}, contents)
       }
     }
     return {
@@ -413,7 +415,7 @@ class Select {
       },
       view (vnode) {
         return [
-          m('div', {class: 'select-value', onclick: self._show.bind(self, state)}, self.config.multiple ? self._renderLabels(self.config.options, state) : self.config.text),
+          m('div', {class: self.config.classValue, onclick: self._show.bind(self, state)}, self.config.multiple ? self._renderLabels(self.config.options, state) : self.config.text),
           this._showDropdown()
         ]
       }

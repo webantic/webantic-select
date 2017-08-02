@@ -1,6 +1,6 @@
 {
   "name": "@webantic/select",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "description": "A simple select library",
   "main": "index.js",
   "scripts": {
@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/webantic/webantic-select#readme",
   "dependencies": {
-    "@webantic/util": "^3.11.2",
+    "@webantic/util": "^3.12.4",
     "mithril": "^1.0.0"
   },
   "devDependencies": {

@@ -28,7 +28,9 @@ var Select = function () {
       text: '',
       viewport: document,
       isModal: false,
-      oneOpen: true
+      oneOpen: true,
+      classValue: 'select-value',
+      classOption: 'select-option'
 
       // update config
     };Object.assign(self.config, config);
@@ -425,7 +427,7 @@ var Select = function () {
           if (self.config.search) {
             contents.unshift(m(Search, this.state));
           }
-          return m('div', { class: 'select-options' }, contents);
+          return m('div', { class: self.config.classOption }, contents);
         }
       };
       return {
@@ -445,7 +447,7 @@ var Select = function () {
           }
         },
         view: function view(vnode) {
-          return [m('div', { class: 'select-value', onclick: self._show.bind(self, state) }, self.config.multiple ? self._renderLabels(self.config.options, state) : self.config.text), this._showDropdown()];
+          return [m('div', { class: self.config.classValue, onclick: self._show.bind(self, state) }, self.config.multiple ? self._renderLabels(self.config.options, state) : self.config.text), this._showDropdown()];
         }
       };
     }
