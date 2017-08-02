@@ -20,7 +20,8 @@ class Select {
       isModal: false,
       oneOpen: true,
       classValue: 'select-value',
-      classOption: 'select-option'
+      classOption: 'select-option',
+      inline: false
     }
 
     // update config
@@ -120,7 +121,13 @@ class Select {
   }
 
   _createRoot (input) {
+    const self = this
     const root = document.createElement('div')
+
+    if (self.config.inline) {
+      root.style = 'display: inline-block;'
+    }
+
     input.parentNode.insertBefore(root, input)
     return root
   }

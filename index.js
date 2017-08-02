@@ -30,7 +30,8 @@ var Select = function () {
       isModal: false,
       oneOpen: true,
       classValue: 'select-value',
-      classOption: 'select-option'
+      classOption: 'select-option',
+      inline: false
 
       // update config
     };Object.assign(self.config, config);
@@ -135,7 +136,13 @@ var Select = function () {
   }, {
     key: '_createRoot',
     value: function _createRoot(input) {
+      var self = this;
       var root = document.createElement('div');
+
+      if (self.config.inline) {
+        root.style = 'display: inline-block;';
+      }
+
       input.parentNode.insertBefore(root, input);
       return root;
     }
