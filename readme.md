@@ -64,3 +64,18 @@ You can pass a config object as a second argument to the constructor.
 
 **search**: (default false) either `true` or `false`, whether you want to enable text search in the dropdown - useful for big datasets. 
 
+**text**
+
+**viewport**
+
+**isModal**
+
+**oneOpen**
+
+**classWrapper** class for the mounted div
+
+**classValue** class for the select
+
+**classOption** class for the select option
+
+**inline** `true` or `false`

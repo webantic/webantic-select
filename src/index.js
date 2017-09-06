@@ -19,6 +19,7 @@ class Select {
       viewport: document,
       isModal: false,
       oneOpen: true,
+      classWrapper: '',
       classValue: 'select-value',
       classOption: 'select-option',
       inline: false
@@ -126,6 +127,10 @@ class Select {
 
     if (self.config.inline) {
       root.style = 'display: inline-block;'
+    }
+
+    if (self.config.classWrapper) {
+      root.className = self.config.classWrapper
     }
 
     input.parentNode.insertBefore(root, input)
