@@ -254,7 +254,10 @@ class Select {
   _registerScrollVanish (state) {
     const self = this
 
-    const viewport = (self.config.viewport === document) ? document : document.querySelector(self.config.viewport)
+    let viewport = self.config.viewport
+    if (viewport && typeof viewport === 'string') {
+      viewport = document.querySelector(self.config.viewport)
+    }
 
     const _hideOnScroll = function (e) {
       self._hide(state)
