@@ -56,7 +56,7 @@ var Select = function () {
       });
       // _hide input and render text element
       input.style.display = 'none';
-      self.config.input = self._createInput(input);
+      self.config.input = config.hiddenInput || self._createInput(input);
 
       // is the input disabled?
       self.config.disabled = Boolean(input.disabled);
