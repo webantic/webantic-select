@@ -304,6 +304,8 @@ class Select {
     // just in case there's no parent with a non-static position
     document.body.style.position = 'relative'
 
+    const self = this
+
     const inputPosition = {
       top: parent.offsetTop + parent.offsetHeight,
       left: parent.offsetLeft,
@@ -316,10 +318,20 @@ class Select {
       vnode.dom.style.right = inputPosition.right + 'px'
     }
 
+    let adjustment = 0
+    const viewport = self.config.viewport
+    const viewportElement = (viewport !== document && typeof viewport === 'string') 
+      ? document.querySelector(viewport) 
+      : false
+
+    if (viewportElement) {
+      adjustment = viewportElement.scrollTop
+    }
+
     if (parent.getBoundingClientRect().bottom > (window.innerHeight * 0.75)) {
-      vnode.dom.style.bottom = inputPosition.bottom + 'px'
+      vnode.dom.style.bottom = (inputPosition.bottom - adjustment)+ 'px'
     } else {
-      vnode.dom.style.top = inputPosition.top + 'px'
+      vnode.dom.style.top = (inputPosition.top - adjustment) + 'px'
     }
   }
 

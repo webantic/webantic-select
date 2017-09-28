@@ -337,6 +337,8 @@ var Select = function () {
       // just in case there's no parent with a non-static position
       document.body.style.position = 'relative';
 
+      var self = this;
+
       var inputPosition = {
         top: parent.offsetTop + parent.offsetHeight,
         left: parent.offsetLeft,
@@ -349,10 +351,18 @@ var Select = function () {
         vnode.dom.style.right = inputPosition.right + 'px';
       }
 
+      var adjustment = 0;
+      var viewport = self.config.viewport;
+      var viewportElement = viewport !== document && typeof viewport === 'string' ? document.querySelector(viewport) : false;
+
+      if (viewportElement) {
+        adjustment = viewportElement.scrollTop;
+      }
+
       if (parent.getBoundingClientRect().bottom > window.innerHeight * 0.75) {
-        vnode.dom.style.bottom = inputPosition.bottom + 'px';
+        vnode.dom.style.bottom = inputPosition.bottom - adjustment + 'px';
       } else {
-        vnode.dom.style.top = inputPosition.top + 'px';
+        vnode.dom.style.top = inputPosition.top - adjustment + 'px';
       }
     }
   }, {
