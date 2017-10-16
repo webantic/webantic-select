@@ -40,7 +40,7 @@ class Select {
       self.config.original = input
       self.config.options = Array.apply(null, input.options).map((option) => {
         return {
-          value: option.value || option.text,
+          value: 'undefined' === typeof option.value ? option.text : option.value,
           text: option.text,
           selected: option.selected
         }
@@ -78,7 +78,7 @@ class Select {
       if (self.config.type === 'select') {
         options = Array.apply(null, self.config.original.options).map((option) => {
           return {
-            value: option.value || option.text,
+            value: 'undefined' === typeof option.value ? option.text : option.value,
             text: option.text,
             selected: option.selected
           }
@@ -103,7 +103,7 @@ class Select {
       self.config.input.value = JSON.stringify(values)
     } else {
       const selectedOption = self._dedupeSelected() || {value: null, text: ''}
-      self.config.input.value = selectedOption.value || selectedOption.text
+      self.config.input.value = 'undefined' === typeof selectedOption.value ? selectedOption.text : selectedOption.value
       self.config.text = selectedOption.text
     }
     m.redraw()

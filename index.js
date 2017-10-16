@@ -49,7 +49,7 @@ var Select = function () {
       self.config.original = input;
       self.config.options = Array.apply(null, input.options).map(function (option) {
         return {
-          value: option.value || option.text,
+          value: 'undefined' === typeof option.value ? option.text : option.value,
           text: option.text,
           selected: option.selected
         };
@@ -90,7 +90,7 @@ var Select = function () {
         if (self.config.type === 'select') {
           options = Array.apply(null, self.config.original.options).map(function (option) {
             return {
-              value: option.value || option.text,
+              value: 'undefined' === typeof option.value ? option.text : option.value,
               text: option.text,
               selected: option.selected
             };
@@ -116,7 +116,7 @@ var Select = function () {
         self.config.input.value = JSON.stringify(values);
       } else {
         var selectedOption = self._dedupeSelected() || { value: null, text: '' };
-        self.config.input.value = selectedOption.value || selectedOption.text;
+        self.config.input.value = 'undefined' === typeof selectedOption.value ? selectedOption.text : selectedOption.value;
         self.config.text = selectedOption.text;
       }
       m.redraw();
