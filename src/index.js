@@ -35,12 +35,23 @@ class Select {
     // store the type (select or input)
     self.config.type = input.tagName.toLowerCase()
 
+    // if no viewport then use document; viewport is string then find matching DOM node; otherwise assume DOM node
+    const viewport = self.config.viewport
+    self.viewport = viewport
+
+    if (typeof viewport === 'string') {
+      self.viewport = document.querySelector(viewport)
+    }
+    if (typeof viewport === 'object') {
+      self.viewport = viewport
+    }
+
     // if a <select> is used, grab the options and setup a text input
     if (self.config.type === 'select' && input.options) {
       self.config.original = input
       self.config.options = Array.apply(null, input.options).map((option) => {
         return {
-          value: 'undefined' === typeof option.value ? option.text : option.value,
+          value: typeof option.value === 'undefined' ? option.text : option.value,
           text: option.text,
           selected: option.selected
         }
@@ -78,7 +89,7 @@ class Select {
       if (self.config.type === 'select') {
         options = Array.apply(null, self.config.original.options).map((option) => {
           return {
-            value: 'undefined' === typeof option.value ? option.text : option.value,
+            value: typeof option.value === 'undefined' ? option.text : option.value,
             text: option.text,
             selected: option.selected
           }
@@ -103,7 +114,7 @@ class Select {
       self.config.input.value = JSON.stringify(values)
     } else {
       const selectedOption = self._dedupeSelected() || {value: null, text: ''}
-      self.config.input.value = 'undefined' === typeof selectedOption.value ? selectedOption.text : selectedOption.value
+      self.config.input.value = typeof selectedOption.value === 'undefined' ? selectedOption.text : selectedOption.value
       self.config.text = selectedOption.text
     }
     m.redraw()
@@ -254,10 +265,7 @@ class Select {
   _registerScrollVanish (state) {
     const self = this
 
-    let viewport = self.config.viewport
-    if (viewport && typeof viewport === 'string') {
-      viewport = document.querySelector(self.config.viewport)
-    }
+    let viewport = self.viewport
 
     const _hideOnScroll = function (e) {
       self._hide(state)
@@ -271,8 +279,8 @@ class Select {
 
     let { top, right, bottom, left } = input.getBoundingClientRect()
 
-    const viewport = self.config.viewport !== document ? document.querySelector(self.config.viewport) : false
-    if (viewport && self.config.isModal) {
+    const viewport = self.viewport
+    if (self.config.isModal) {
       const viewportBoundaries = viewport.getBoundingClientRect()
 
       left -= viewportBoundaries.left
@@ -319,17 +327,14 @@ class Select {
     }
 
     let adjustment = 0
-    const viewport = self.config.viewport
-    const viewportElement = (viewport !== document && typeof viewport === 'string') 
-      ? document.querySelector(viewport) 
-      : false
+    const viewport = self.viewport
 
-    if (viewportElement) {
-      adjustment = viewportElement.scrollTop
+    if (viewport) {
+      adjustment = viewport.scrollTop
     }
 
     if (parent.getBoundingClientRect().bottom > (window.innerHeight * 0.75)) {
-      vnode.dom.style.bottom = (inputPosition.bottom - adjustment)+ 'px'
+      vnode.dom.style.bottom = (inputPosition.bottom - adjustment) + 'px'
     } else {
       vnode.dom.style.top = (inputPosition.top - adjustment) + 'px'
     }

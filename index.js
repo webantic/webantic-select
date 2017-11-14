@@ -1,5 +1,7 @@
 'use strict';
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -44,12 +46,23 @@ var Select = function () {
     // store the type (select or input)
     self.config.type = input.tagName.toLowerCase();
 
+    // if no viewport then use document; viewport is string then find matching DOM node; otherwise assume DOM node
+    var viewport = self.config.viewport;
+    self.viewport = viewport;
+
+    if (typeof viewport === 'string') {
+      self.viewport = document.querySelector(viewport);
+    }
+    if ((typeof viewport === 'undefined' ? 'undefined' : _typeof(viewport)) === 'object') {
+      self.viewport = viewport;
+    }
+
     // if a <select> is used, grab the options and setup a text input
     if (self.config.type === 'select' && input.options) {
       self.config.original = input;
       self.config.options = Array.apply(null, input.options).map(function (option) {
         return {
-          value: 'undefined' === typeof option.value ? option.text : option.value,
+          value: typeof option.value === 'undefined' ? option.text : option.value,
           text: option.text,
           selected: option.selected
         };
@@ -90,7 +103,7 @@ var Select = function () {
         if (self.config.type === 'select') {
           options = Array.apply(null, self.config.original.options).map(function (option) {
             return {
-              value: 'undefined' === typeof option.value ? option.text : option.value,
+              value: typeof option.value === 'undefined' ? option.text : option.value,
               text: option.text,
               selected: option.selected
             };
@@ -116,7 +129,7 @@ var Select = function () {
         self.config.input.value = JSON.stringify(values);
       } else {
         var selectedOption = self._dedupeSelected() || { value: null, text: '' };
-        self.config.input.value = 'undefined' === typeof selectedOption.value ? selectedOption.text : selectedOption.value;
+        self.config.input.value = typeof selectedOption.value === 'undefined' ? selectedOption.text : selectedOption.value;
         self.config.text = selectedOption.text;
       }
       m.redraw();
@@ -281,10 +294,7 @@ var Select = function () {
     value: function _registerScrollVanish(state) {
       var self = this;
 
-      var viewport = self.config.viewport;
-      if (viewport && typeof viewport === 'string') {
-        viewport = document.querySelector(self.config.viewport);
-      }
+      var viewport = self.viewport;
 
       var _hideOnScroll = function _hideOnScroll(e) {
         self._hide(state);
@@ -303,8 +313,8 @@ var Select = function () {
           bottom = _input$getBoundingCli.bottom,
           left = _input$getBoundingCli.left;
 
-      var viewport = self.config.viewport !== document ? document.querySelector(self.config.viewport) : false;
-      if (viewport && self.config.isModal) {
+      var viewport = self.viewport;
+      if (self.config.isModal) {
         var viewportBoundaries = viewport.getBoundingClientRect();
 
         left -= viewportBoundaries.left;
@@ -352,11 +362,10 @@ var Select = function () {
       }
 
       var adjustment = 0;
-      var viewport = self.config.viewport;
-      var viewportElement = viewport !== document && typeof viewport === 'string' ? document.querySelector(viewport) : false;
+      var viewport = self.viewport;
 
-      if (viewportElement) {
-        adjustment = viewportElement.scrollTop;
+      if (viewport) {
+        adjustment = viewport.scrollTop;
       }
 
       if (parent.getBoundingClientRect().bottom > window.innerHeight * 0.75) {
